@@ -85,16 +85,14 @@ while True:
                     idf = math.log(numberOfSamples/numOfSamplesContainingWord,10)
                     userInputWordsVector.append(tf*idf)
                     allUniqueWordsInUserSentence.append(word)
-        #print(allUniqueWordsInUserSentence)
-        #print(userInputWordsVector)
         
         
         #vectorise every sentence
-        
         closestMatch = ""
         greatestCosineSimilarity = 0
-        #loop through every sample apart fro the sentence entered by the user
+        #loop through every sample apart from the sentence entered by the user
         for currentLine in listOfAllSamples[:-1]:
+            currentLine = lemmatizer.lemmatize(currentLine)
             currentLineAsList = currentLine.split(" ")
             sampleWordsVector = []
             allUniqueWordsInSample = []
@@ -117,23 +115,16 @@ while True:
                 closestMatch = currentLine
                 greatestCosineSimilarity = cosineSimilarity
         print("closest match: ",closestMatch," cosine similarity: ",greatestCosineSimilarity)
-            
-        #vectorise every sample
-        for fileSentence in listOfAllSamples:
-            fileSentence = fileSentence.split(" ")
-            fileSentenceWordsVector = []
-            for word in fileSentence:
-                numOfSamplesContainingWord = 0
-                for sentence in listOfAllSamples:
-                    sentence = sentence.split(" ")
-                    if word in sentence:
-                        numOfSamplesContainingWord += 1    
-                tf = fileSentence.count(word)/len(fileSentence)
-                idf = math.log(numberOfSamples/numOfSamplesContainingWord)
-                fileSentenceWordsVector.append(tf*idf)
-            #print(fileSentence)
-            #print(fileSentenceWordsVector)
-    
+        
+        if greatestCosineSimilarity == 0:
+            print("I'm sorry I don't understand that")
+        
+        with open('csv.txt') as f:
+            for line in f:
+                line = line.split(",")
+                if line[0] == closestMatch:
+                    print (line[1])
+                
     
     #get user input
     try:
@@ -180,43 +171,10 @@ while True:
                 print("Sorry, I could not resolve the location you gave me.")
         elif cmd == 99:
             
+            #check csv file
             userInput = lemmatizer.lemmatize(userInput) 
             tfidfVectorise(userInput)
-            userInputList = nltk.word_tokenize(userInput)
-            sw = stopwords.words('english')
-            Y_set = {w for w in userInputList if not w in sw} 
-            
-            
-            listOfPairs = []
-            with open('csv.txt') as f:
-                lines = f.readlines()
-                closestMatch = ["",0]
-                for line in lines:
-                    if line != "":
-                        line = line.split(",")
-                        fileQuestion = line[0]
-                        fileQuestionTokenised = nltk.word_tokenize(fileQuestion)
-                        sw = stopwords.words('english')
-                        l1 =[];l2 =[]
-                        X_set = {w for w in fileQuestionTokenised if not w in sw}
-                        rvector = X_set.union(Y_set)
-                        for w in rvector:
-                            if w in X_set: l1.append(1) # create a vector
-                            else: l1.append(0)
-                            if w in Y_set: l2.append(1)
-                            else: l2.append(0)
-                        c = 0
 
-                        # cosine formula 
-                        for i in range(len(rvector)):
-                            c+= l1[i]*l2[i]
-                        cosine = c / float((sum(l1)*sum(l2))**0.5)
-                        
-                        if cosine > closestMatch[1]:
-                            closestMatch = [line[1],cosine]
-
-            print(closestMatch[0])
-            #check csv file
     else:
         print(answer)
         
